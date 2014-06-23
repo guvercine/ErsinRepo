@@ -2,6 +2,7 @@ package com.example.ersinvaadinproject;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -21,7 +22,7 @@ public class DatabaseHandler {
 	private static Statement statement=null;
     private static ResultSet resultset;
     static BeanItemContainer<Customer> customers;
-    
+    private static PreparedStatement prstmt;
     public static Statement connect() throws Exception{
     	
     	
@@ -71,6 +72,20 @@ public class DatabaseHandler {
     	resultset.first();
     		return resultset.getInt(1);
     	
+    }
+    
+    public static void updateCustomer(Customer c) throws Exception{
+    	
+    	prstmt=conn.prepareStatement("update customer set Name=?,Surname=?,Gender=?,"+
+                "BirthDate=?,BirthCity=?,Active=? where CustomerID=? ");
+        prstmt.setString(1,c.getName());
+        prstmt.setString(2,c.getSurname());
+        prstmt.setString(3,c.getGender());
+        prstmt.setString(4,c.getBirthdate());
+        prstmt.setString(5,c.getCity());
+        prstmt.setString(6,c.getActive()); 
+        prstmt.setInt(7,c.getId());
+        prstmt.executeUpdate();
     }
 
     public static Connection getConn() {

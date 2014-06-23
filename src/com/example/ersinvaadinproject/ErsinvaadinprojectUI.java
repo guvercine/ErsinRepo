@@ -19,8 +19,11 @@ import com.vaadin.ui.Notification;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.data.Item;
+import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.fieldgroup.BeanFieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup;
+import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
+import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.event.Action;
 import com.vaadin.event.Action.Handler;
@@ -202,7 +205,7 @@ public class ErsinvaadinprojectUI extends UI {
 					else{
 						DatabaseHandler.connect();
 						date=datefield.getValue();
-						formatter = new SimpleDateFormat("yyyy-MM-dd");
+						formatter = new SimpleDateFormat("dd-MM-yyyy");
 						birthdate = formatter.format(date);
 						if(active.getValue()==true)
 						{
@@ -222,7 +225,7 @@ public class ErsinvaadinprojectUI extends UI {
 						DatabaseHandler.getConn().close();
 		                DatabaseHandler.getStatement().close();
 
-						Notification.show("Successfully registered. Please refresh the page!",Notification.TYPE_WARNING_MESSAGE);
+						Notification.show("Successfully registered!",Notification.TYPE_WARNING_MESSAGE);
 						
 					}
 				}
@@ -246,6 +249,8 @@ public class ErsinvaadinprojectUI extends UI {
 				
 			}
 		});
+		
+		
 		
 		generatereport=new Button("Generate");
 		generatereport.addClickListener(new ClickListener() {
@@ -312,7 +317,7 @@ public class ErsinvaadinprojectUI extends UI {
 	}
 
 	private void openCustomerWindow(Item beanItem, String caption) {
-		Window window = new Window(caption);
+		final Window window = new Window(caption);
 		window.setModal(true);
 		FormLayout layout = new FormLayout();
 		layout.setMargin(true);
@@ -327,7 +332,28 @@ public class ErsinvaadinprojectUI extends UI {
 			
 			@Override
 			public void buttonClick(ClickEvent event) {
-				System.out.println(clickitem.getItemPropertyIds().toString());
+				BeanItemContainer<Customer> customers=new BeanItemContainer<Customer>(Customer.class);
+				
+				try {
+					DatabaseHandler.connect();
+					fieldGroup.commit();
+					BeanItem<Customer> beanItem =(BeanItem <Customer>) fieldGroup.getItemDataSource();
+					customers.addItem(beanItem.getBean());
+					
+					Customer c=new Customer(beanItem.getBean().getId(), beanItem.getBean().getName(),
+					beanItem.getBean().getSurname(),beanItem.getBean().getGender(),
+					beanItem.getBean().getBirthdate(),beanItem.getBean().getCity(),beanItem.getBean().getActive());
+					DatabaseHandler.updateCustomer(c);
+					DatabaseHandler.getConn().close();
+	                DatabaseHandler.getStatement().close();
+					window.close();
+					} 
+					catch (CommitException e) {
+						e.printStackTrace();
+					}
+					catch(Exception ex){
+						ex.printStackTrace();
+					}
 				
 				
 			}
